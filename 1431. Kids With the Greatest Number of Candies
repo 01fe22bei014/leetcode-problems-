@@ -1,0 +1,31 @@
+bool* kidsWithCandies(int* candies, int candiesSize, int extraCandies, int* returnSize) 
+{
+    // Allocate memory for the result array
+    bool *result = malloc(sizeof(bool) * candiesSize);
+    if (!result) 
+    {
+        *returnSize = 0;
+        return NULL;
+    }
+
+    // Find the maximum number of candies among all kids
+    int maxCandies = candies[0];
+    for (int i = 1; i < candiesSize; i++) 
+    {
+        if (candies[i] > maxCandies) 
+        {
+            maxCandies = candies[i];
+        }
+    }
+
+    // Check if each kid can have the greatest number of candies after adding extraCandies
+    for (int i = 0; i < candiesSize; i++) 
+    {
+        result[i] = (candies[i] + extraCandies >= maxCandies);
+    }
+
+    // Set the return size
+    *returnSize = candiesSize;
+
+    return result;
+}
