@@ -1,0 +1,32 @@
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+long long countSubarrays(int* nums, int numsSize, int k) {
+    long long res = 0;
+    int maxVal = nums[0];
+    int count = 0;
+    int windowStart = 0;
+
+    // Find the maximum value
+    for (int i = 0; i < numsSize; i++) {
+        maxVal = MAX(maxVal, nums[i]);
+    }
+
+    // Iterate through the array
+    for (int windowEnd = 0; windowEnd < numsSize; windowEnd++) {
+        if (nums[windowEnd] == maxVal) {
+            count++;
+        }
+
+        // Shrink the window as long as the count of maximum value exceeds k
+        while (count >= k) {
+            // Increment result by the number of valid subarrays ending at windowEnd
+            res += numsSize - windowEnd;
+            // Move the window's start to the right
+            if (nums[windowStart] == maxVal) {
+                count--;
+            }
+            windowStart++;
+        }
+    }
+
+    return res;
+}
