@@ -1,0 +1,43 @@
+struct stack {
+    char *val;
+    int top;
+};
+
+void push(struct stack *s, char x) {
+    s->top++;
+    s->val[s->top] = x;
+}
+
+char pop(struct stack *s) {
+    char temp = s->val[s->top];
+    s->top--;
+    return temp;
+}
+
+bool isValid(char* s) {
+    struct stack main;
+    main.top = -1; // Initialize top to -1
+     main.val = (char *)malloc(strlen(s) * sizeof(char));
+    int len = strlen(s);
+    len--; // Adjusting for zero-based indexing
+    int i = 0;
+    while (i <= len) {
+        if (s[i] == '(' || s[i] == '{' || s[i] == '[') {
+            push(&main, s[i]);
+        } else if (s[i] == ')' || s[i] == '}' || s[i] == ']') {
+            if (main.top == -1) // Stack is empty, no matching opening bracket found
+                return false;
+            char top = pop(&main);
+            if ((s[i] == ')' && top != '(') ||
+                (s[i] == '}' && top != '{') ||
+                (s[i] == ']' && top != '[')) {
+                return false; // Mismatched parentheses
+            }
+        }
+        i++;
+    }
+    if (main.top == -1) // Stack should be empty if all parentheses matched
+        return true;
+    else
+        return false;
+}
