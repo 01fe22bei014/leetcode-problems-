@@ -1,0 +1,44 @@
+bool isSubsequence(char* s, char* t) 
+{
+    int length1 = strlen(s);
+    int length2 = strlen(t);
+    int count = 0;
+    int i = 0, j = 0;
+
+    if(length1==0 || length2==0)
+    {
+        if(length1==0)
+        {
+            return true;
+        }
+        else
+        {
+        return false;
+        }
+    }
+    if(length1>length2)
+    {
+        return false;
+    }
+
+
+    while(i<length1 && j <length2)
+    {
+        if(s[i]==t[j])
+        {
+            count++;
+            i++;
+            j++;
+        }
+        else
+        {
+            j++;
+        }
+    }
+    
+    if(count==length1 || count==length2)
+    {
+        return true;
+    }
+    else return false;
+}
