@@ -1,0 +1,43 @@
+int longestSubarray(int* nums, int numsSize) {
+    int lastPos = -1; // Initialize lastPos to -1 to handle the case where the first element is 0
+    int tmp = 0;
+    int result = 0;
+    int del = 0;
+    int p = 0;
+
+    while (p < numsSize) 
+    {
+        if (nums[p] == 1) 
+        {
+            tmp++;
+            p++;
+        } 
+        else if (del < 1) 
+        {
+            del++;
+            lastPos = p;
+           // tmp++;
+            p++;
+        } else 
+        {
+            if (tmp > result) 
+            {
+                result = tmp;
+            }
+            tmp = p - lastPos - 1; // Update tmp to the length of the new subarray
+            lastPos = p;
+            p++;
+        }
+    }
+
+    if (tmp > result) 
+    {
+        result = tmp;
+    }
+    if(result==numsSize)
+    {
+        result=numsSize-1;
+    }
+
+    return result;
+}
