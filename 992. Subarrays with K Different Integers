@@ -1,0 +1,37 @@
+int subarraysWithKDistinct(int* nums, int numsSize, int k) {
+    int window1[20001] = {0}; // Store count of elements in the window
+    int window2[20001] = {0}; // Store count of elements up to current index
+    int unique1 = 0, unique2 = 0;
+    int left1 = 0, left2 = 0;
+    int count = 0;
+
+    for (int right = 0; right < numsSize; right++) 
+    {
+        if (window1[nums[right]] == 0) unique1++;
+        window1[nums[right]]++;
+        
+        if (window2[nums[right]] == 0) unique2++;
+        window2[nums[right]]++;
+
+        // Shrink the window from the left until we have k distinct elements
+        while (unique1 > k) 
+        {
+            window1[nums[left1]]--;
+            if (window1[nums[left1]] == 0) unique1--;
+            left1++;
+        }
+        
+        // Shrink the window from the left until we have k - 1 distinct elements
+        while (unique2 > k - 1) {
+            window2[nums[left2]]--;
+            if (window2[nums[left2]] == 0) unique2--;
+            left2++;
+        }
+
+        // At this point, all subarrays [left1, right] have exactly k distinct elements
+        // Also, all subarrays [left2, right] have at most k - 1 distinct elements
+        count += left2 - left1;
+    }
+
+    return count;
+}
