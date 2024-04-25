@@ -1,0 +1,14 @@
+int cache[100];
+
+int climbStairs(int n) {
+    // declare the base case
+    if (n == 1 || n == 2) {
+        return n;
+    }
+    else { // recursive case 
+        if (cache[n] == NULL) { // check if value is already stored
+        cache[n] = climbStairs(n-1) + climbStairs(n-2);
+        }     
+        return cache[n];
+    }
+}
