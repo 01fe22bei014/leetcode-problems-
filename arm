@@ -1,0 +1,122 @@
+#include <lpc214x.h>
+
+#define RED_LIGHT_PIN    (1 << 10)
+#define YELLOW_LIGHT_PIN (1 << 11)
+#define GREEN_LIGHT_PIN  (1 << 12)
+
+#define SWITCH_MANUAL    (1 << 15)
+#define SWITCH_OVERDRIVE (1 << 16)
+
+#define MOTOR_PIN        (1 << 17)
+
+// Traffic light durations (in seconds)
+#define RED_DURATION    30
+#define YELLOW_DURATION 5
+#define GREEN_DURATION  25
+#define OVERDRIVE_MULTIPLIER 1.5
+
+void delay_ms(unsigned int ms) {
+    // Simple delay loop
+    unsigned int i, j;
+    for (i = 0; i < ms; i++) {
+        for (j = 0; j < 6000; j++) {
+            // Do nothing, just waste time
+        }
+    }
+}
+
+void UART0_Init(void) {
+    // UART0 initialization for communication
+    PINSEL0 |= 0x00000005;  // Enable TxD0 and RxD0
+    U0LCR = 0x83;  // 8 bits, no Parity, 1 Stop bit
+    U0DLM = 0;
+    U0DLL = 97;  // For 9600 baud rate
+    U0LCR = 0x03;  // DLAB = 0
+    U0FCR = 0x07;  // Enable and reset TX and RX FIFO
+}
+
+void UART0_SendString(char* str) {
+    while (*str) {
+        while (!(U0LSR & 0x20));  // Wait until THR empty
+        U0THR = *str++;
+    }
+}
+
+void initialize() {
+    // Initialize GPIO pins for LEDs, switches, and motors
+    PINSEL0 = 0x00000000;  // Configure P0.0 to P0.15 as GPIO
+    IO0DIR |= (RED_LIGHT_PIN | YELLOW_LIGHT_PIN | GREEN_LIGHT_PIN | MOTOR_PIN);  // Set LEDs and motor as output
+    IO0DIR &= ~(SWITCH_MANUAL | SWITCH_OVERDRIVE);  // Set switches as input
+    UART0_Init();
+}
+
+void setLightState(int red, int yellow, int green) {
+    if (red) IO0SET = RED_LIGHT_PIN; else IO0CLR = RED_LIGHT_PIN;
+    if (yellow) IO0SET = YELLOW_LIGHT_PIN; else IO0CLR = YELLOW_LIGHT_PIN;
+    if (green) IO0SET = GREEN_LIGHT_PIN; else IO0CLR = GREEN_LIGHT_PIN;
+}
+
+void setMotorState(int state) {
+    if (state) IO0SET = MOTOR_PIN; else IO0CLR = MOTOR_PIN;
+}
+
+void updateSSD(int time) {
+    // Function to update seven-segment display with the countdown timer
+    // For simplicity, we'll just send the time over UART
+    char buffer[16];
+    sprintf(buffer, "Time: %d\n", time);
+    UART0_SendString(buffer);
+}
+
+void trafficLightCycle() {
+    unsigned int red_duration = RED_DURATION;
+    unsigned int green_duration = GREEN_DURATION;
+
+    if (IO0PIN & SWITCH_OVERDRIVE) {
+        green_duration = (unsigned int)(green_duration * OVERDRIVE_MULTIPLIER);
+    }
+
+    // Red Light
+    setLightState(1, 0, 0);
+    setMotorState(1);  // Close gate
+    for (int i = red_duration; i > 0; i--) {
+        updateSSD(i);
+        delay_ms(1000);
+        // Check for manual override
+        if (IO0PIN & SWITCH_MANUAL) {
+            return;
+        }
+    }
+
+    // Yellow Light
+    setLightState(0, 1, 0);
+    setMotorState(1);  // Keep gate closed
+    for (int i = YELLOW_DURATION; i > 0; i--) {
+        updateSSD(i);
+        delay_ms(1000);
+        // Check for manual override
+        if (IO0PIN & SWITCH_MANUAL) {
+            return;
+        }
+    }
+
+    // Green Light
+    setLightState(0, 0, 1);
+    setMotorState(0);  // Open gate
+    for (int i = green_duration; i > 0; i--) {
+        updateSSD(i);
+        delay_ms(1000);
+        // Check for manual override
+        if (IO0PIN & SWITCH_MANUAL) {
+            return;
+        }
+    }
+}
+
+int main() {
+    initialize();
+    while (1) {
+        trafficLightCycle();
+    }
+    return 0;
+}
